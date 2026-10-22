@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+{% block title %}#{{ tag.name }} - AuraBlog{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 40px; margin-bottom: 36px; text-align: center;">
+    <h1 style="font-size: 2.2rem; font-weight: 800; margin-bottom: 8px;">#{{ tag.name }}</h1>
+    <p style="color: var(--text-muted);">Browsing all stories tagged with #{{ tag.name }}</p>
+  </div>
+
+  <div class="posts-grid" style="grid-template-columns: repeat(3, 1fr);">
+    {% for post in page_obj %}
+      <article class="post-card">
+        <a href="{{ post.get_absolute_url }}" class="card-media">
+          <img src="{{ post.image_url }}" alt="{{ post.title }}" loading="lazy">
+        </a>
+        <div class="card-body">
+          <div class="card-date-read">
+            <span>{{ post.published_at|date:"M d, Y" }}</span>
+            <span>•</span>
+            <span>{{ post.read_time|reading_time }}</span>
+          </div>
+          <h3 class="card-title">
+            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+          </h3>
+          <p class="card-excerpt">{{ post.excerpt|default:post.content|truncatewords:20 }}</p>
+          <div class="card-footer">
+            <span class="card-author">{{ post.author.get_full_name|default:post.author.username }}</span>
+            <div class="card-stats">
+              <span>👁 {{ post.views_count }}</span>
+              <span>❤️ {{ post.likes_count }}</span>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px;">
+        <p style="color: var(--text-muted);">No posts tagged with #{{ tag.name }}.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 32px 0;">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary">← Previous</a>
+      {% endif %}
+      <span style="font-size: 0.9rem; color: var(--text-muted);">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="btn-secondary">Next →</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

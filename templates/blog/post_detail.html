@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+{% block title %}{{ post.title }} - AuraBlog{% endblock %}
+{% block meta_description %}{{ post.excerpt|default:post.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- ARTICLE HEADER -->
+  <header class="article-header">
+    {% if post.category %}
+      <a href="{% url 'blog:category_detail' post.category.slug %}" class="badge-cat" style="background-color: {{ post.category.color }};">
+        {{ post.category.name }}
+      </a>
+    {% endif %}
+
+    <h1 class="article-headline">{{ post.title }}</h1>
+
+    <div class="article-author-meta">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="{{ post.author.username }}" style="width:32px; height:32px; border-radius:50%;">
+        <span style="font-weight:600; color:var(--text-main);">{{ post.author.get_full_name|default:post.author.username }}</span>
+      </div>
+      <span>•</span>
+      <span>{{ post.published_at|date:"F d, Y" }}</span>
+      <span>•</span>
+      <span>{{ post.read_time|reading_time }}</span>
+      <span>•</span>
+      <span>👁 {{ post.views_count }} views</span>
+    </div>
+  </header>
+
+  <!-- FEATURED IMAGE BANNER -->
+  <div class="article-featured-image">
+    <img src="{{ post.image_url }}" alt="{{ post.title }}">
+  </div>
+
+  <!-- ARTICLE 3-COLUMN LAYOUT -->
+  <div class="article-layout">
+    <!-- LEFT: STICKY ACTIONS BAR -->
+    <aside class="article-sticky-actions">
+      <!-- AJAX Like Button -->
+      <button type="button" class="action-circle-btn" id="likePostBtn" data-endpoint="{% url 'blog:post_like' post.slug %}" title="Like this article">
+        <span>❤️</span>
+        <span class="action-count" id="likeCount">{{ post.likes_count }}</span>
+      </button>
+
+      <!-- Scroll to Comments -->
+      <a href="#comments" class="action-circle-btn" title="Jump to comments">
+        <span>💬</span>
+        <span class="action-count">{{ comments.count }}</span>
+      </a>
+
+      <!-- Copy Link Button -->
+      <button type="button" class="action-circle-btn btn-copy-link" title="Copy article link">
+        <span>🔗</span>
+      </button>
+
+      {% if user.is_authenticated %}
+        <!-- Quick Edit Link for Staff -->
+        <a href="{% url 'blog:cms_post_edit' post.pk %}" class="action-circle-btn" style="background:var(--brand-primary); color:white;" title="Edit in CMS">
+          <span>✏️</span>
+        </a>
+      {% endif %}
+    </aside>
+
+    <!-- CENTER: ARTICLE BODY & COMMENTS -->
+    <article>
+      <!-- Formatted Article Content -->
+      <div class="article-content">
+        {{ post.content|markdown }}
+      </div>
+
+      <!-- Tags list -->
+      {% if post.tags.all %}
+        <div style="display:flex; align-items:center; gap:10px; margin: 40px 0; flex-wrap:wrap;">
+          <span style="font-weight:700; font-size:0.9rem; color:var(--text-muted);">Tagged in:</span>
+          {% for tag in post.tags.all %}
+            <a href="{% url 'blog:tag_detail' tag.slug %}" class="tag-pill">#{{ tag.name }}</a>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Author Bio Card -->
+      <div class="author-bio-card">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="{{ post.author.username }}" class="author-bio-avatar">
+        <div class="author-bio-text">
+          <h4>Written by {{ post.author.get_full_name|default:post.author.username }}</h4>
+          <p>Author, technology researcher, and digital creator passionate about distributed systems, UI elegance, and developer tooling.</p>
+        </div>
+      </div>
+
+      <!-- COMMENTS SECTION -->
+      <section class="comments-section" id="comments">
+        <div class="section-header">
+          <h3 class="section-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Discussion ({{ comments.count }})
+          </h3>
+        </div>
+
+        <!-- Comments List -->
+        {% if comments %}
+          <div style="margin-bottom: 32px;">
+            {% for comment in comments %}
+              <div class="comment-card">
+                <div class="comment-header">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:34px; height:34px; border-radius:50%; background:var(--brand-gradient); display:flex; align-items:center; justify-content:center; color:white; font-weight:700; font-size:0.85rem;">
+                      {{ comment.name|slice:":1"|upper }}
+                    </div>
+                    <div>
+                      <div class="comment-author">{{ comment.name }}</div>
+                      <div class="comment-time">{{ comment.created_at|timesince }} ago</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="comment-body">
+                  {{ comment.content|linebreaks }}
+                </div>
+
+                <!-- Nested Replies -->
+                {% for reply in comment.replies.all %}
+                  {% if reply.is_approved %}
+                    <div class="comment-card comment-card-reply" style="margin-top: 14px;">
+                      <div class="comment-header">
+                        <span class="comment-author">{{ reply.name }}</span>
+                        <span class="comment-time">{{ reply.created_at|timesince }} ago</span>
+                      </div>
+                      <div class="comment-body">
+                        {{ reply.content|linebreaks }}
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom: 24px;">No comments yet. Start the conversation!</p>
+        {% endif %}
+
+        <!-- Comment Form Box -->
+        <div class="comment-form-box">
+          <h4 style="font-size:1.2rem; font-weight:700; margin-bottom:14px;">Leave a Comment</h4>
+          <form method="POST">
+            {% csrf_token %}
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+              <div>
+                {{ comment_form.name }}
+              </div>
+              <div>
+                {{ comment_form.email }}
+              </div>
+            </div>
+            <div>
+              {{ comment_form.content }}
+            </div>
+            <button type="submit" class="btn-primary" style="padding:12px 28px;">Post Comment</button>
+          </form>
+        </div>
+      </section>
+    </article>
+
+    <!-- RIGHT: RELATED ARTICLES -->
+    <aside>
+      <div class="widget-card" style="position:sticky; top:100px;">
+        <h3 class="widget-title">Related Stories</h3>
+        <div class="trending-list">
+          {% for rel in related_posts %}
+            <a href="{{ rel.get_absolute_url }}" class="trending-item">
+              <img src="{{ rel.image_url }}" alt="{{ rel.title }}" style="width:68px; height:50px; border-radius:var(--radius-sm); object-fit:cover;">
+              <div class="trending-content">
+                <h4 class="trending-title">{{ rel.title }}</h4>
+                <div class="trending-date">{{ rel.published_at|date:"M d" }} • {{ rel.read_time|reading_time }}</div>
+              </div>
+            </a>
+          {% empty %}
+            <p style="font-size:0.85rem; color:var(--text-muted);">No related stories found.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+  </div>
+
+</div>
+{% endblock %}

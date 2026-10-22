@@ -1,0 +1,147 @@
+{% extends 'cms/base_cms.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit "{{ post.title }}"{% else %}Write New Story{% endif %} - AuraBlog CMS{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Story Studio{% else %}Create New Story Studio{% endif %}{% endblock %}
+
+{% block cms_content %}
+<form method="POST" enctype="multipart/form-data" id="postStudioForm">
+  {% csrf_token %}
+
+  <div class="editor-layout">
+    <!-- LEFT COLUMN: MAIN EDITOR -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <!-- Title Input -->
+      <div class="editor-card" style="padding:20px;">
+        <label class="form-label" for="id_title">Story Headline</label>
+        {{ form.title }}
+        {% if form.title.errors %}
+          <div style="color:#ef4444; font-size:0.8rem; margin-top:4px;">{{ form.title.errors }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Excerpt Input -->
+      <div class="editor-card" style="padding:20px;">
+        <label class="form-label" for="id_excerpt">Excerpt / Preview Teaser</label>
+        {{ form.excerpt }}
+        <span style="font-size:0.78rem; color:var(--text-muted); display:block; margin-top:4px;">A short summary displayed on cards, social shares, and search engines.</span>
+      </div>
+
+      <!-- Rich Writing Canvas & Markdown Toolbar -->
+      <div class="editor-card" style="padding:0; overflow:hidden;">
+        <!-- Formatting Toolbar -->
+        <div class="editor-toolbar">
+          <button type="button" class="toolbar-btn" data-action="h2" title="Heading 2">H2</button>
+          <button type="button" class="toolbar-btn" data-action="h3" title="Heading 3">H3</button>
+          <span style="color:var(--border-color);">|</span>
+          <button type="button" class="toolbar-btn" data-action="bold" title="Bold"><b>B</b></button>
+          <button type="button" class="toolbar-btn" data-action="italic" title="Italic"><i>I</i></button>
+          <span style="color:var(--border-color);">|</span>
+          <button type="button" class="toolbar-btn" data-action="quote" title="Blockquote">” Quote</button>
+          <button type="button" class="toolbar-btn" data-action="code" title="Code snippet">&lt;/&gt; Code</button>
+          <button type="button" class="toolbar-btn" data-action="link" title="Link">🔗 Link</button>
+          <button type="button" class="toolbar-btn" data-action="list" title="Bullet List">• List</button>
+
+          <div style="margin-left:auto; display:flex; align-items:center; gap:12px; font-size:0.8rem; color:var(--text-muted);">
+            <span id="wordCountBadge">0 words</span>
+            <span>•</span>
+            <span id="readTimeBadge">1 min read</span>
+          </div>
+        </div>
+
+        <!-- Textarea -->
+        <div style="padding:16px;">
+          {{ form.content }}
+          {% if form.content.errors %}
+            <div style="color:#ef4444; font-size:0.8rem; margin-top:4px;">{{ form.content.errors }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Live Split Preview Box -->
+      <div class="editor-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h4 style="font-size:1rem; font-weight:700;">Live Rendered Reader Preview</h4>
+          <span style="font-size:0.75rem; background:rgba(99,102,241,0.1); color:var(--brand-primary); padding:2px 8px; border-radius:4px; font-weight:600;">Instant Sync</span>
+        </div>
+        <div class="live-preview-box article-content" id="cmsLivePreview"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: METADATA, MEDIA & PUBLISHING CONTROLS -->
+    <div style="display:flex; flex-direction:column; gap:24px;">
+      <!-- Publishing Actions Card -->
+      <div class="editor-card">
+        <h4 style="font-size:1.05rem; font-weight:700; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+          Publish Settings
+        </h4>
+
+        <div class="form-group">
+          <label class="form-label">Article Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:10px;">
+          {{ form.is_featured }}
+          <label for="id_is_featured" style="font-size:0.9rem; font-weight:600; cursor:pointer;">
+            Spotlight on Hero Banner
+          </label>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+          <button type="submit" name="submit_action" value="publish" class="btn-primary" style="justify-content:center; padding:12px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            {% if is_edit %}Update & Publish{% else %}Publish Story Live{% endif %}
+          </button>
+
+          <button type="submit" name="submit_action" value="draft" class="btn-secondary" style="justify-content:center; padding:10px;">
+            Save as Draft
+          </button>
+        </div>
+      </div>
+
+      <!-- Category & Taxonomy Card -->
+      <div class="editor-card">
+        <h4 style="font-size:1.05rem; font-weight:700; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+          Taxonomy & Category
+        </h4>
+
+        <div class="form-group">
+          <label class="form-label" for="id_category">Category</label>
+          {{ form.category }}
+          <a href="{% url 'blog:cms_category_list' %}" target="_blank" style="font-size:0.78rem; color:var(--brand-primary); display:inline-block; margin-top:6px;">+ Add new category</a>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="id_tags_input">Tags</label>
+          {{ form.tags_input }}
+          <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:4px;">Comma-separated tags e.g. python, django, ai</span>
+        </div>
+      </div>
+
+      <!-- Featured Image Card -->
+      <div class="editor-card">
+        <h4 style="font-size:1.05rem; font-weight:700; margin-bottom:16px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+          Featured Media
+        </h4>
+
+        <div class="form-group">
+          <label class="form-label" for="id_featured_image_url">Image Direct URL</label>
+          {{ form.featured_image_url }}
+          <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:4px;">Paste Unsplash or hosted image URL</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Or Upload Image File</label>
+          {{ form.featured_image }}
+        </div>
+
+        <!-- Image Live Preview -->
+        <div style="margin-top:14px; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border-color); max-height:160px; background:var(--bg-surface-subtle); display:flex; align-items:center; justify-content:center;">
+          <img id="featuredImgPreview" src="{% if is_edit %}{{ post.image_url }}{% else %}https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80{% endif %}" alt="Featured preview" style="width:100%; height:100%; object-fit:cover;">
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

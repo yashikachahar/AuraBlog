@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ site_name }} - {{ site_tagline }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}A dynamic, modern content management and blogging ecosystem designed for storytellers, tech enthusiasts, and creators.{% endblock %}">
+  
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Reading Progress Bar -->
+  <div id="readingProgress" class="reading-progress-bar"></div>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="{% url 'blog:post_list' %}" class="brand-logo" id="navBrandLogo">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span>Aura<span class="brand-text-gradient">Blog</span></span>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="{% url 'blog:post_list' %}" class="nav-link {% if request.resolver_match.url_name == 'post_list' %}active{% endif %}">Home</a></li>
+          {% for cat in nav_categories|slice:":4" %}
+            <li><a href="{% url 'blog:category_detail' cat.slug %}" class="nav-link">{{ cat.name }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Search Trigger Button -->
+        <button type="button" class="btn-icon open-search-modal" title="Search articles (Ctrl+K)" id="searchTriggerBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+
+        <!-- Dark/Light Mode Switcher -->
+        <button type="button" class="btn-icon theme-toggle-btn" title="Toggle color theme" id="themeToggleBtn">
+          <span class="theme-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </span>
+        </button>
+
+        <!-- CMS Panel Link -->
+        {% if user.is_authenticated %}
+          <a href="{% url 'blog:cms_dashboard' %}" class="btn-primary" id="cmsDashboardLink">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            CMS Studio
+          </a>
+        {% else %}
+          <a href="{% url 'blog:cms_login' %}" class="btn-secondary" id="cmsLoginLink">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+            Blogger Portal
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% if messages %}
+    <div class="container" style="padding-top: calc(var(--header-height) + 16px);">
+      {% for message in messages %}
+        <div class="toast {{ message.tags }}" style="position:static; margin-bottom:12px; max-width:600px;">
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Main Body Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Global Search Modal -->
+  <div class="modal-overlay" id="searchModal">
+    <div class="search-modal-box">
+      <form action="{% url 'blog:search' %}" method="GET">
+        <div class="search-modal-input-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" name="q" id="searchModalInput" class="search-modal-input" placeholder="Search stories, topics, tags, tutorials..." autocomplete="off">
+          <button type="button" class="btn-icon close-search-modal" title="Close search">✕</button>
+        </div>
+      </form>
+      <div style="padding: 16px 24px; font-size: 0.85rem; color: var(--text-muted); display:flex; justify-content:space-between;">
+        <span>Press <kbd style="background:var(--bg-surface-subtle); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">Enter</kbd> to search</span>
+        <span>Press <kbd style="background:var(--bg-surface-subtle); padding:2px 6px; border-radius:4px; border:1px solid var(--border-color);">ESC</kbd> to exit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand-logo" style="margin-bottom: 12px;">
+            <div class="brand-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+            <span>Aura<span class="brand-text-gradient">Blog</span></span>
+          </div>
+          <p>An enterprise-grade, modern Content Management and Blogging ecosystem built with Python Django and cutting-edge web technologies.</p>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Explore Topics</h4>
+          <ul class="footer-links">
+            {% for cat in nav_categories %}
+              <li><a href="{% url 'blog:category_detail' cat.slug %}" class="footer-link">{{ cat.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">CMS Administration</h4>
+          <ul class="footer-links">
+            <li><a href="{% url 'blog:cms_dashboard' %}" class="footer-link">Blogger Dashboard</a></li>
+            <li><a href="{% url 'blog:cms_post_create' %}" class="footer-link">Write New Story</a></li>
+            <li><a href="{% url 'blog:cms_post_list' %}" class="footer-link">Manage Articles</a></li>
+            <li><a href="/admin/" target="_blank" class="footer-link">Django Admin Backend ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Stay Connected</h4>
+          <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">Get thoughtful articles directly to your inbox weekly.</p>
+          <form action="{% url 'blog:subscribe' %}" method="POST" class="newsletter-form">
+            {% csrf_token %}
+            <input type="email" name="email" class="newsletter-input" placeholder="Your email address" required style="border: 1px solid var(--border-color); background:var(--bg-surface-subtle); color:var(--text-main);">
+            <button type="submit" class="btn-primary" style="justify-content:center;">Join Newsletter</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 AuraBlog CMS Platform. Crafted with excellence for high-performance publishing.</p>
+        <div style="display:flex; gap:16px;">
+          <a href="/admin/" class="footer-link">Django Admin</a>
+          <span>•</span>
+          <a href="{% url 'blog:cms_login' %}" class="footer-link">Staff Login</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

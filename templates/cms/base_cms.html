@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CMS Studio - AuraBlog{% endblock %}</title>
+  
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="cms-body">
+
+  <div class="cms-wrapper">
+    <!-- CMS SIDEBAR -->
+    <aside class="cms-sidebar" id="cmsSidebar">
+      <div class="cms-sidebar-header">
+        <a href="{% url 'blog:cms_dashboard' %}" class="brand-logo">
+          <div class="brand-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <span style="font-size:1.15rem;">Aura<span class="brand-text-gradient">CMS</span></span>
+        </a>
+      </div>
+
+      <nav class="cms-sidebar-nav">
+        <a href="{% url 'blog:cms_dashboard' %}" class="cms-nav-item {% if request.resolver_match.url_name == 'cms_dashboard' %}active{% endif %}" id="cmsNavDashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="{% url 'blog:cms_post_list' %}" class="cms-nav-item {% if request.resolver_match.url_name == 'cms_post_list' %}active{% endif %}" id="cmsNavPosts">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span>All Articles</span>
+        </a>
+
+        <a href="{% url 'blog:cms_post_create' %}" class="cms-nav-item {% if request.resolver_match.url_name == 'cms_post_create' %}active{% endif %}" id="cmsNavNewPost">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span>Write Story</span>
+        </a>
+
+        <a href="{% url 'blog:cms_category_list' %}" class="cms-nav-item {% if request.resolver_match.url_name == 'cms_category_list' %}active{% endif %}" id="cmsNavCategories">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>Categories</span>
+        </a>
+
+        <a href="{% url 'blog:cms_comment_list' %}" class="cms-nav-item {% if request.resolver_match.url_name == 'cms_comment_list' %}active{% endif %}" id="cmsNavComments">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Comments</span>
+        </a>
+
+        <div style="height: 1px; background: var(--border-color); margin: 16px 0;"></div>
+
+        <a href="{% url 'blog:post_list' %}" class="cms-nav-item" target="_blank" id="cmsNavLiveBlog">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          <span>View Live Blog ↗</span>
+        </a>
+
+        <a href="/admin/" class="cms-nav-item" target="_blank" id="cmsNavDjangoAdmin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Django Admin ↗</span>
+        </a>
+      </nav>
+
+      <div class="cms-sidebar-footer">
+        <div class="cms-user-pill">
+          <div style="width:36px; height:36px; border-radius:50%; background:var(--brand-gradient); display:flex; align-items:center; justify-content:center; color:white; font-weight:700;">
+            {{ user.username|slice:":1"|upper }}
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; font-size:0.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ user.get_full_name|default:user.username }}</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);">Content Creator</div>
+          </div>
+          <a href="{% url 'blog:cms_logout' %}" title="Log out" style="color:var(--text-muted); padding:4px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CMS MAIN VIEW -->
+    <div class="cms-main">
+      <!-- TOP BAR -->
+      <header class="cms-topbar">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <h2 style="font-size:1.25rem; font-weight:800; letter-spacing:-0.01em;">{% block page_title %}Dashboard{% endblock %}</h2>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:14px;">
+          <!-- Theme Toggle -->
+          <button type="button" class="btn-icon theme-toggle-btn" title="Toggle color theme">
+            <span class="theme-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </span>
+          </button>
+
+          <!-- Quick Write Post Button -->
+          <a href="{% url 'blog:cms_post_create' %}" class="btn-primary" id="cmsTopNewPostBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Write Story
+          </a>
+        </div>
+      </header>
+
+      <!-- FLASH MESSAGES -->
+      {% if messages %}
+        <div style="padding: 20px 32px 0;">
+          {% for message in messages %}
+            <div class="toast {{ message.tags }}" style="position:static; margin-bottom:12px; max-width:100%;">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- CMS PAGE CONTENT -->
+      <main class="cms-content">
+        {% block cms_content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

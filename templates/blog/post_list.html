@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load blog_tags %}
+
+{% block title %}AuraBlog - The Modern Digital Magazine & CMS{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- HERO SPOTLIGHT POST -->
+  {% if featured_post %}
+    <section class="hero-spotlight" style="background-image: url('{{ featured_post.image_url }}');">
+      <div class="hero-spotlight-content">
+        <span class="badge-featured">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Featured Spotlight
+        </span>
+
+        {% if featured_post.category %}
+          <div style="margin-bottom: 8px;">
+            <a href="{% url 'blog:category_detail' featured_post.category.slug %}" class="cat-chip" style="display:inline-flex; background:rgba(255,255,255,0.25); color:white; backdrop-filter:blur(6px); border:none; padding:4px 14px; font-size:0.8rem;">
+              {{ featured_post.category.name }}
+            </a>
+          </div>
+        {% endif %}
+
+        <h1 class="hero-title">
+          <a href="{{ featured_post.get_absolute_url }}">{{ featured_post.title }}</a>
+        </h1>
+
+        <p class="hero-excerpt">{{ featured_post.excerpt|default:featured_post.content|truncatewords:30 }}</p>
+
+        <div class="post-meta-row">
+          <div class="author-pill">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" alt="{{ featured_post.author.username }}" class="avatar-img">
+            <span style="color:white; font-weight:600;">{{ featured_post.author.get_full_name|default:featured_post.author.username }}</span>
+          </div>
+          <span>•</span>
+          <span>{{ featured_post.published_at|date:"M d, Y" }}</span>
+          <span>•</span>
+          <span>{{ featured_post.read_time|reading_time }}</span>
+          <span>•</span>
+          <span>👁 {{ featured_post.views_count }} views</span>
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- TOPIC PILLS FILTER BAR -->
+  <div class="category-chips-bar">
+    <a href="{% url 'blog:post_list' %}" class="cat-chip {% if not selected_category %}active{% endif %}">
+      <span>All Stories</span>
+    </a>
+    {% for cat in categories %}
+      <a href="{% url 'blog:category_detail' cat.slug %}" class="cat-chip {% if selected_category == cat %}active{% endif %}">
+        <span class="cat-badge-dot" style="background-color: {{ cat.color }};"></span>
+        <span>{{ cat.name }}</span>
+        <span style="font-size:0.75rem; opacity:0.8;">({{ cat.active_count }})</span>
+      </a>
+    {% endfor %}
+  </div>
+
+  <!-- MAIN 2-COLUMN LAYOUT -->
+  <div class="blog-main-grid">
+    <!-- LEFT: ARTICLES FEED -->
+    <div>
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+          {% if selected_category %}Articles in {{ selected_category.name }}{% else %}Latest Articles{% endif %}
+        </h2>
+        <span style="font-size: 0.88rem; color: var(--text-muted);">{{ page_obj.paginator.count }} posts</span>
+      </div>
+
+      {% if page_obj %}
+        <div class="posts-grid">
+          {% for post in page_obj %}
+            <article class="post-card">
+              <a href="{{ post.get_absolute_url }}" class="card-media">
+                <img src="{{ post.image_url }}" alt="{{ post.title }}" loading="lazy">
+                {% if post.category %}
+                  <span class="card-category-badge" style="background-color: {{ post.category.color }};">
+                    {{ post.category.name }}
+                  </span>
+                {% endif %}
+              </a>
+
+              <div class="card-body">
+                <div class="card-date-read">
+                  <span>{{ post.published_at|date:"M d, Y" }}</span>
+                  <span>•</span>
+                  <span>{{ post.read_time|reading_time }}</span>
+                </div>
+
+                <h3 class="card-title">
+                  <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+                </h3>
+
+                <p class="card-excerpt">
+                  {{ post.excerpt|default:post.content|truncatewords:22 }}
+                </p>
+
+                <div class="card-footer">
+                  <div class="card-author">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&q=80" alt="{{ post.author.username }}" style="width:24px; height:24px; border-radius:50%;">
+                    <span>{{ post.author.get_full_name|default:post.author.username }}</span>
+                  </div>
+
+                  <div class="card-stats">
+                    <span class="stat-item" title="Views">👁 {{ post.views_count }}</span>
+                    <span class="stat-item" title="Likes">❤️ {{ post.likes_count }}</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+
+        <!-- PAGINATION CONTROLS -->
+        {% if page_obj.has_other_pages %}
+          <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 32px 0;">
+            {% if page_obj.has_previous %}
+              <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn-secondary" style="padding: 8px 16px;">← Previous</a>
+            {% endif %}
+
+            <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-muted); padding: 0 12px;">
+              Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category.slug }}{% endif %}" class="btn-secondary" style="padding: 8px 16px;">Next →</a>
+            {% endif %}
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div style="text-align: center; padding: 60px 20px; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px dashed var(--border-color);">
+          <div style="font-size: 3rem; margin-bottom: 16px;">✍️</div>
+          <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 8px;">No Stories Published Yet</h3>
+          <p style="color: var(--text-muted); margin-bottom: 24px;">Be the first author to publish a story through our CMS studio!</p>
+          <a href="{% url 'blog:cms_post_create' %}" class="btn-primary">Write First Story</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- RIGHT: SIDEBAR WIDGETS -->
+    <aside class="sidebar">
+      <!-- Trending Articles -->
+      <div class="widget-card">
+        <h3 class="widget-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          Trending Stories
+        </h3>
+        <div class="trending-list">
+          {% for post in trending_posts %}
+            <a href="{{ post.get_absolute_url }}" class="trending-item">
+              <span class="trending-num">0{{ forloop.counter }}</span>
+              <div class="trending-content">
+                <h4 class="trending-title">{{ post.title }}</h4>
+                <div class="trending-date">{{ post.published_at|date:"M d" }} • 👁 {{ post.views_count }} views</div>
+              </div>
+            </a>
+          {% empty %}
+            <p style="font-size: 0.85rem; color: var(--text-muted);">No trending stories yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Categories Widget -->
+      <div class="widget-card">
+        <h3 class="widget-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Popular Categories
+        </h3>
+        <ul class="category-list-widget">
+          {% for cat in categories %}
+            <li>
+              <a href="{% url 'blog:category_detail' cat.slug %}" class="category-list-item">
+                <span style="display:flex; align-items:center; gap:8px;">
+                  <span class="cat-badge-dot" style="background-color: {{ cat.color }};"></span>
+                  {{ cat.name }}
+                </span>
+                <span class="cat-count">{{ cat.active_count }}</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Tags Cloud -->
+      {% if tags %}
+        <div class="widget-card">
+          <h3 class="widget-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            Explore Tags
+          </h3>
+          <div class="tags-cloud">
+            {% for tag in tags %}
+              <a href="{% url 'blog:tag_detail' tag.slug %}" class="tag-pill">#{{ tag.name }}</a>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Newsletter Widget -->
+      <div class="newsletter-card">
+        <h4>Stay Ahead of Trends</h4>
+        <p>Get curated weekly essays on software architecture, design systems, and engineering leadership.</p>
+        <form action="{% url 'blog:subscribe' %}" method="POST" class="newsletter-form">
+          {% csrf_token %}
+          <input type="email" name="email" class="newsletter-input" placeholder="Your work email..." required>
+          <button type="submit" class="btn-newsletter">Subscribe Free</button>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+</div>
+{% endblock %}

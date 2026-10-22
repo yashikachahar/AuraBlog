@@ -1,0 +1,27 @@
+{% extends 'cms/base_cms.html' %}
+{% load static %}
+
+{% block title %}Confirm Deletion - AuraBlog CMS{% endblock %}
+{% block page_title %}Delete Article{% endblock %}
+
+{% block cms_content %}
+<div style="max-width: 600px; margin: 40px auto;">
+  <div class="editor-card" style="text-align: center; padding: 40px;">
+    <div style="font-size: 3rem; margin-bottom: 16px;">⚠️</div>
+    <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 12px; color: var(--text-main);">Delete Article?</h2>
+    <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 24px;">
+      Are you sure you want to permanently delete <strong style="color:var(--text-main);">"{{ post.title }}"</strong>? This action cannot be undone and all associated reader comments will also be removed.
+    </p>
+
+    <form method="POST">
+      {% csrf_token %}
+      <div style="display:flex; justify-content:center; gap:16px;">
+        <a href="{% url 'blog:cms_post_list' %}" class="btn-secondary" style="padding:10px 24px;">Cancel & Return</a>
+        <button type="submit" class="btn-primary" style="background:#ef4444; border:none; padding:10px 24px; box-shadow:0 4px 14px rgba(239,68,68,0.35);">
+          Permanently Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
